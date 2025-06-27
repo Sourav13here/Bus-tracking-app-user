@@ -40,6 +40,7 @@ const styles = StyleSheet.create({
     welcomeText: {
         fontSize: 18,
         color: '#666',
+        alignItems:'center'
     },
     inputContainer: {
         marginBottom: 30,
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
     },
     formContainer: {
         justifyContent:'center',
-        marginTop:50
+        marginTop:20
     },
 
 });

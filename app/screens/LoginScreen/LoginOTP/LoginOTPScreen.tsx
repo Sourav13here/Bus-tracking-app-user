@@ -12,6 +12,7 @@ import {
     Alert,
     Keyboard,
 } from 'react-native';
+import {ActivityIndicator} from "react-native";
 
 const OTPVerification = () => {
     const { phone } = useLocalSearchParams();
@@ -21,6 +22,8 @@ const OTPVerification = () => {
     const [timer, setTimer] = useState(30);
     const [canResend, setCanResend] = useState(false);
     const inputRefs = useRef<TextInput[]>([]);
+    const [isVerifying, setIsVerifying] = useState(false);
+
 
     // Timer countdown
     useEffect(() => {
@@ -73,11 +76,13 @@ const OTPVerification = () => {
         const otpValue = otp.join('');
         if (otpValue.length === 4) {
             Keyboard.dismiss();
+            setIsVerifying(true);
             console.log('Verifying OTP:', otpValue);
-            Alert.alert('Verification', `Verifying OTP: ${otpValue}`);
             setTimeout(() => {
-                Alert.alert('Success', 'OTP verified successfully!');
-            }, 1500);
+                        setIsVerifying(false);
+                        router.push('/screens/LoginScreen/UserScreen/UserMainScreen')
+                        console.log("Otp verified succesfully")
+            }, 2000);
         }
     };
 
@@ -143,6 +148,11 @@ const OTPVerification = () => {
                         </Text>
                     </TouchableOpacity>
                 </View>
+                {isVerifying ? (
+                    <View style={styles.loaderContainer}>
+                        <ActivityIndicator size="large" color="#1f2937" />
+                    </View>
+                ) : (
 
                 <TouchableOpacity
                     onPress={handleVerify}
@@ -155,6 +165,7 @@ const OTPVerification = () => {
                 >
                     <Text style={styles.verifyButtonText}>Verify</Text>
                 </TouchableOpacity>
+                    )}
 
                 <View style={styles.infoContainer}>
                     <Text style={styles.infoText}>
@@ -245,7 +256,7 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     verifyButtonDisabled: {
-        backgroundColor: '#d1d5db',
+        backgroundColor: '#8b8c8c',
     },
     verifyButtonText: {
         color: '#ffffff',
@@ -273,6 +284,13 @@ const styles = StyleSheet.create({
         left: 20,
         zIndex: 10,
     },
+    loaderContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 16,
+        marginBottom: 24,
+    },
+
 });
 
 export default OTPVerification;

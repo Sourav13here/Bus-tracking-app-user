@@ -50,7 +50,7 @@ const LoginScreen = () => {
                 {/* Welcome Text */}
                 <View style={styles.welcomeContainer}>
                     <Text style={styles.loginText}>Login</Text>
-                    <Text style={styles.welcomeText}>Welcome Back!</Text>
+                    <Text style={styles.welcomeText}>Welcome !</Text>
                 </View>
                 <View style={styles.formContainer}>
                 {/* Phone Input */}
@@ -75,12 +75,7 @@ const LoginScreen = () => {
                 </TouchableOpacity>
 
                 {/* Sign Up Link */}
-                <View style={styles.signUpContainer}>
-                    <Text style={styles.signUpText}>Don't have an account? </Text>
-                    <TouchableOpacity onPress={()=>router.push('../screens/SignupScreen/SignupScreen')}>
-                        <Text style={styles.signUpLink}>Sign up</Text>
-                    </TouchableOpacity>
-                 </View>
+
                 </View>
             </View>
         </SafeAreaView>
