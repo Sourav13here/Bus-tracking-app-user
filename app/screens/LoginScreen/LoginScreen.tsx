@@ -16,8 +16,16 @@ const LoginScreen = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
 
     const handleGetOTP = () => {
-        // Handle OTP request logic here
-        console.log('Requesting OTP for:', phoneNumber);
+        if (!phoneNumber || phoneNumber.length !== 10) {
+            alert("Please enter a valid 10-digit phone number");
+            return;
+        }
+
+        // Navigate and pass phone number
+        router.push({
+            pathname: "/screens/LoginScreen/LoginOTP/LoginOTPScreen",
+            params: { phone: phoneNumber },
+        });
     };
 
 
