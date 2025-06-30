@@ -80,7 +80,7 @@ const OTPVerification = () => {
             console.log('Verifying OTP:', otpValue);
             setTimeout(() => {
                         setIsVerifying(false);
-                        router.push('/screens/LoginScreen/UserScreen/UserMainScreen')
+                        router.push('/screens/UserDashboard/UserMainScreen')
                         console.log("Otp verified succesfully")
             }, 2000);
         }
