@@ -12,6 +12,7 @@ import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import {router} from "expo-router";
 
 export default function Map({ navigation }: { navigation: any }) {
     const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null);
@@ -58,7 +59,9 @@ export default function Map({ navigation }: { navigation: any }) {
                     style={styles.logo}
                 />
                 <Text style={styles.companyName}>Company Name</Text>
+                <TouchableOpacity onPress={()=>router.push('/screens/AccountPage/AccountPage')}>
                 <Ionicons name="person-circle" size={36} color="#333" />
+                </TouchableOpacity>
             </View>
 
             {/* Map */}
@@ -105,33 +108,10 @@ export default function Map({ navigation }: { navigation: any }) {
                 </TouchableOpacity>
             </View>
 
-            {/* Current Bus */}
-            <TouchableOpacity
-                onPress={() => navigation.navigate("BusDetails", { busNumber: "12" })}
-                style={styles.currentBusCard}
-            >
-                <View style={styles.busRow}>
 
-                    <View style={styles.busPic}>
-                        <Text style={styles.picText}>Pic</Text>
-                    </View>
-
-                    <View style={{ flex: 1 }}>
-                        <View style={styles.driverRow}>
-                            <Text style={styles.driverName}>Sanjeev Iqbal Ahmed</Text>
-                            <Text style={styles.driverNumber}> | +91-9123456789</Text>
-                        </View>
-                        <View style={styles.busNumberBox}>
-                            <Text style={styles.busNumberText}>Bus #12</Text>
-                        </View>
-                        <Text style={styles.timeText}>09:00 AM — 10:00 AM</Text>
-                    </View>
-                    <Ionicons name="navigate-circle-outline" size={28} color="#ddd" />
-                </View>
-            </TouchableOpacity>
 
             {/* Other Buses */}
-            <Text style={styles.sectionTitle}>Other Buses to School</Text>
+            <Text style={styles.sectionTitle}>Available Buses</Text>
 
             <TouchableOpacity
                 onPress={() => navigation.navigate("BusDetails", { busNumber: "7" })}
@@ -178,17 +158,193 @@ export default function Map({ navigation }: { navigation: any }) {
                     </View>
                 </View>
             </TouchableOpacity>
+            <TouchableOpacity
+                onPress={() => navigation.navigate("BusDetails", { busNumber: "3" })}
+                style={styles.otherBusCard}
+            >
+                <View style={styles.busRow}>
+                    <View style={styles.busPicSmall}>
+                        <Text style={styles.picText}>Pic</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <View style={styles.driverRow}>
+                            <Text style={styles.driverName}>Michael Scott</Text>
+                            <Text style={styles.driverNumber}> | 9012345678</Text>
+                        </View>
+                        <View style={styles.busNumberBoxAlt}>
+                            <Text style={styles.busNumberTextAlt}>Bus #3</Text>
+                        </View>
+                        <Text style={styles.routeText}>
+                            Park Road → River Bridge → Springfield School
+                        </Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPress={() => navigation.navigate("BusDetails", { busNumber: "3" })}
+                style={styles.otherBusCard}
+            >
+                <View style={styles.busRow}>
+                    <View style={styles.busPicSmall}>
+                        <Text style={styles.picText}>Pic</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <View style={styles.driverRow}>
+                            <Text style={styles.driverName}>Michael Scott</Text>
+                            <Text style={styles.driverNumber}> | 9012345678</Text>
+                        </View>
+                        <View style={styles.busNumberBoxAlt}>
+                            <Text style={styles.busNumberTextAlt}>Bus #3</Text>
+                        </View>
+                        <Text style={styles.routeText}>
+                            Park Road → River Bridge → Springfield School
+                        </Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPress={() => navigation.navigate("BusDetails", { busNumber: "3" })}
+                style={styles.otherBusCard}
+            >
+                <View style={styles.busRow}>
+                    <View style={styles.busPicSmall}>
+                        <Text style={styles.picText}>Pic</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <View style={styles.driverRow}>
+                            <Text style={styles.driverName}>Michael Scott</Text>
+                            <Text style={styles.driverNumber}> | 9012345678</Text>
+                        </View>
+                        <View style={styles.busNumberBoxAlt}>
+                            <Text style={styles.busNumberTextAlt}>Bus #3</Text>
+                        </View>
+                        <Text style={styles.routeText}>
+                            Park Road → River Bridge → Springfield School
+                        </Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPress={() => navigation.navigate("BusDetails", { busNumber: "3" })}
+                style={styles.otherBusCard}
+            >
+                <View style={styles.busRow}>
+                    <View style={styles.busPicSmall}>
+                        <Text style={styles.picText}>Pic</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <View style={styles.driverRow}>
+                            <Text style={styles.driverName}>Michael Scott</Text>
+                            <Text style={styles.driverNumber}> | 9012345678</Text>
+                        </View>
+                        <View style={styles.busNumberBoxAlt}>
+                            <Text style={styles.busNumberTextAlt}>Bus #3</Text>
+                        </View>
+                        <Text style={styles.routeText}>
+                            Park Road → River Bridge → Springfield School
+                        </Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPress={() => navigation.navigate("BusDetails", { busNumber: "3" })}
+                style={styles.otherBusCard}
+            >
+                <View style={styles.busRow}>
+                    <View style={styles.busPicSmall}>
+                        <Text style={styles.picText}>Pic</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <View style={styles.driverRow}>
+                            <Text style={styles.driverName}>Michael Scott</Text>
+                            <Text style={styles.driverNumber}> | 9012345678</Text>
+                        </View>
+                        <View style={styles.busNumberBoxAlt}>
+                            <Text style={styles.busNumberTextAlt}>Bus #3</Text>
+                        </View>
+                        <Text style={styles.routeText}>
+                            Park Road → River Bridge → Springfield School
+                        </Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPress={() => navigation.navigate("BusDetails", { busNumber: "3" })}
+                style={styles.otherBusCard}
+            >
+                <View style={styles.busRow}>
+                    <View style={styles.busPicSmall}>
+                        <Text style={styles.picText}>Pic</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <View style={styles.driverRow}>
+                            <Text style={styles.driverName}>Michael Scott</Text>
+                            <Text style={styles.driverNumber}> | 9012345678</Text>
+                        </View>
+                        <View style={styles.busNumberBoxAlt}>
+                            <Text style={styles.busNumberTextAlt}>Bus #3</Text>
+                        </View>
+                        <Text style={styles.routeText}>
+                            Park Road → River Bridge → Springfield School
+                        </Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPress={() => navigation.navigate("BusDetails", { busNumber: "3" })}
+                style={styles.otherBusCard}
+            >
+                <View style={styles.busRow}>
+                    <View style={styles.busPicSmall}>
+                        <Text style={styles.picText}>Pic</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <View style={styles.driverRow}>
+                            <Text style={styles.driverName}>Michael Scott</Text>
+                            <Text style={styles.driverNumber}> | 9012345678</Text>
+                        </View>
+                        <View style={styles.busNumberBoxAlt}>
+                            <Text style={styles.busNumberTextAlt}>Bus #3</Text>
+                        </View>
+                        <Text style={styles.routeText}>
+                            Park Road → River Bridge → Springfield School
+                        </Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPress={() => navigation.navigate("BusDetails", { busNumber: "3" })}
+                style={styles.otherBusCard}
+            >
+                <View style={styles.busRow}>
+                    <View style={styles.busPicSmall}>
+                        <Text style={styles.picText}>Pic</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <View style={styles.driverRow}>
+                            <Text style={styles.driverName}>Michael Scott</Text>
+                            <Text style={styles.driverNumber}> | 9012345678</Text>
+                        </View>
+                        <View style={styles.busNumberBoxAlt}>
+                            <Text style={styles.busNumberTextAlt}>Bus #3</Text>
+                        </View>
+                        <Text style={styles.routeText}>
+                            Park Road → River Bridge → Springfield School
+                        </Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
         </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    scrollContainer: { padding: 16 },
+    scrollContainer: { padding: 10 ,},
     header: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
     logo: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#ddd" },
     companyName: { flex: 1, fontSize: 18, fontWeight: "600", marginLeft: 8, color: "#333" },
     mapContainer: {
-        height: 450,
+        height: 550,
         borderRadius: 12,
         overflow: "hidden",
         marginBottom: 16,
@@ -250,13 +406,15 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     otherBusCard: {
-        backgroundColor: "#393c3c",
+        backgroundColor: "#6383c3",
         borderRadius: 10,
         padding: 12,
         marginBottom: 10,
+        borderWidth:2,
+        borderColor:"#000000"
     },
     busNumberBoxAlt: {
-        backgroundColor: "#9a9090",
+        backgroundColor: "#4c4a4a",
         paddingHorizontal: 8,
         paddingVertical: 3,
         borderRadius: 5,
@@ -265,5 +423,5 @@ const styles = StyleSheet.create({
         marginBottom: 2,
     },
     busNumberTextAlt: { color: "#fff", fontSize: 12 },
-    routeText: { fontSize: 12, color: "#ccc", marginTop: 2 },
+    routeText: { fontSize: 12, color: "#edeaea", marginTop: 2 },
 });

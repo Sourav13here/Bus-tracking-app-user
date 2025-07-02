@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -50,5 +50,16 @@
     "eslint-config-expo": "~9.2.0",
     "typescript": "~5.8.3"
   },
-  "private": true
+  "private": true,
+  "description": "<<<<<<< HEAD # Welcome to your Expo app 👋",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sourav13here/Bus-tracking-app-user.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sourav13here/Bus-tracking-app-user/issues"
+  },
+  "homepage": "https://github.com/Sourav13here/Bus-tracking-app-user#readme"
 }

@@ -7,6 +7,8 @@ export default function RootLayout() {
         <Stack.Screen name= "screens/SignupScreen/SignupScreen" options={{headerShown:false}}/>
         <Stack.Screen name="screens/LoginScreen/LoginOTP/LoginOTPScreen" options={{headerShown:false}}/>
         <Stack.Screen name="screens/UserDashboard/UserMainScreen" options={{headerShown:false}}/>
+        <Stack.Screen name="screens/AccountPage/AccountPage" options={{headerShown:false}}/>
+
 
     </Stack>
 
