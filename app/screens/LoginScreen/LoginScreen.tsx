@@ -11,21 +11,47 @@ import {
 
 import {Image} from "expo-image";
 import styles from "@/app/screens/LoginScreen/LoginStyle";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LoginScreen = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
 
-    const handleGetOTP = () => {
+    const handleGetOTP = async () => {
         if (!phoneNumber || phoneNumber.length !== 10) {
             alert("Please enter a valid 10-digit phone number");
             return;
         }
+        try {
+            // Call your backend API
+            const response = await fetch("http://192.168.190.91:9000/api/request-otp", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    phone: phoneNumber,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+
+                // Navigate to OTP screen
+                router.push({
+                    pathname: "/screens/LoginScreen/LoginOTP/LoginOTPScreen",
+                    params: { phone: phoneNumber },
+                });
+            } else {
+                alert(data.message || "Something went wrong. Please try again.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Network error. Could not connect to server.");
+        }
 
         // Navigate and pass phone number
-        router.push({
-            pathname: "/screens/LoginScreen/LoginOTP/LoginOTPScreen",
-            params: { phone: phoneNumber },
-        });
+
     };
 
 

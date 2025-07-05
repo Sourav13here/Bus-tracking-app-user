@@ -1,0 +1,2 @@
+// Example middleware
+module.exports = {};

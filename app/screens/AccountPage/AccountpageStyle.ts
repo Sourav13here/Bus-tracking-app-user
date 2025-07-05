@@ -22,6 +22,26 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#1b1a1a", // or any background you like
+    },
+    loadingText: {
+        fontSize: 16,
+        color: "#fff",
+    },
+
+    dropdown: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 6,
+        paddingHorizontal: 12,
+        height: 48,
+        justifyContent: 'center',
+        marginTop: 4,
+    },
 
     headerButton: {
         padding: 8,
