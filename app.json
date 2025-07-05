@@ -1,12 +1,17 @@
 {
   "expo": {
-    "name": "userexpo",
+    "name": "EduBus",
     "slug": "userexpo",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/school-bus.png",
     "scheme": "userexpo",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/school-bus.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
@@ -16,7 +21,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.sou13rav.userexpo"
     },
     "web": {
       "bundler": "metro",
@@ -25,18 +31,16 @@
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ]
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7947b4ef-f367-4f32-b5e6-47d3949bf784"
+      }
     }
   }
 }

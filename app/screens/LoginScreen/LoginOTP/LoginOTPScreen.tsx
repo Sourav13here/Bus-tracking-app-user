@@ -13,6 +13,8 @@ import {
     Keyboard,
 } from 'react-native';
 import {ActivityIndicator} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 const OTPVerification = () => {
     const { phone } = useLocalSearchParams();
@@ -25,17 +27,21 @@ const OTPVerification = () => {
     const [isVerifying, setIsVerifying] = useState(false);
 
 
-    // Timer countdown
     useEffect(() => {
         if (timer > 0) {
             const interval = setInterval(() => {
                 setTimer(prev => prev - 1);
             }, 1000);
+
             return () => clearInterval(interval);
         } else {
             setCanResend(true);
         }
     }, [timer]);
+
+
+
+
 
     const handleInputChange = (index: number, value: string) => {
         if (value && !/^\d$/.test(value)) return;
@@ -61,30 +67,77 @@ const OTPVerification = () => {
         setTimer(30);
 
         try {
-            // Simulate API call
-            setTimeout(() => {
-                setIsResending(false);
-                Alert.alert('Success', `OTP has been resent to ${phone || 'your number'}`);
-            }, 1000);
+            const response = await fetch("http://192.168.190.91:9000/api/request-otp", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    phone: phone
+                }),
+            });
+
+            const data = await response.json();
+            console.log("Resend OTP response:", data);
+
+            if (data.success) {
+            } else {
+                Alert.alert("Error", data.message || "Failed to resend OTP.");
+            }
         } catch (error) {
+            console.error("Resend OTP error:", error);
+            Alert.alert("Error", "Something went wrong. Please try again.");
+        } finally {
             setIsResending(false);
-            Alert.alert('Error', 'Failed to resend OTP. Please try again.');
         }
     };
 
-    const handleVerify = () => {
+    const handleVerify = async () => {
         const otpValue = otp.join('');
         if (otpValue.length === 4) {
             Keyboard.dismiss();
             setIsVerifying(true);
             console.log('Verifying OTP:', otpValue);
-            setTimeout(() => {
-                        setIsVerifying(false);
-                        router.push('/screens/UserDashboard/UserMainScreen')
-                        console.log("Otp verified succesfully")
-            }, 2000);
+
+            try {
+                const response = await fetch("http://192.168.190.91:9000/api/verify-otp", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        phone: phone,
+                        otp: otpValue
+                    }),
+                });
+
+                const data = await response.json();
+                console.log("Verify response:", data);
+
+                const phoneStr = Array.isArray(phone) ? phone[0] : phone;
+
+                if (data.success) {
+                    await AsyncStorage.setItem("phone", phoneStr);
+                    if (data.hasProfile) {
+                        router.push('/screens/UserDashboard/UserMainScreen');
+                    } else {
+                        router.push('/screens/UserProfile/FillFormScreen');
+                    }
+                } else {
+                    Alert.alert("Invalid OTP", data.message || "The OTP you entered is incorrect.");
+                    setIsVerifying(false);
+
+                }
+
+            } catch (error) {
+                setIsVerifying(false);
+                console.error("Verify error:", error);
+                Alert.alert("Error", "Something went wrong. Please try again.");
+            }
+
         }
     };
+
 
     const isComplete = otp.every(digit => digit !== '');
 
