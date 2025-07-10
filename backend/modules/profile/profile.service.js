@@ -4,9 +4,11 @@ exports.updateUserProfile = async ({
                                        phone,
                                        user_name,
                                        user_address,
+                                       selected_type,
                                        class_or_semester,
                                        section_or_branch,
                                        roll_no,
+                                       bus_no
                                    }) => {
     const result = await db.query(
         `UPDATE users SET
@@ -14,7 +16,9 @@ exports.updateUserProfile = async ({
                           user_address = ?,
                           class_or_semester = ?,
                           section_or_branch = ?,
+                          selected_type =?,
                           roll_no = ?,
+                          bus_no=?,
                           created_by = ?,
                           updated_at = NOW()
          WHERE phone_no = ?`,
@@ -23,7 +27,9 @@ exports.updateUserProfile = async ({
             user_address,
             class_or_semester,
             section_or_branch,
+            selected_type,
             roll_no,
+            bus_no,
             user_name, // created_by = user_name
             phone
         ]
@@ -50,9 +56,11 @@ exports.getUserProfile = async (phone) => {
       phone_no AS phone,
       user_name,
       user_address,
+      selected_type,
       class_or_semester,
       section_or_branch,
-      roll_no
+      roll_no,
+      bus_no
     FROM users
     WHERE phone_no = ?`,
         [phone]
@@ -80,11 +88,14 @@ exports.getUserProfile = async (phone) => {
     const classes = row.class_or_semester ? row.class_or_semester.split(",") : [];
     const sections = row.section_or_branch ? row.section_or_branch.split(",") : [];
     const rollNos = row.roll_no ? row.roll_no.split(",") : [];
+    const selectedTypes = row.selected_type ? row.selected_type.split(",") : [];
+
 
     const children = names.map((name, index) => ({
         id: index.toString(),
         fullName: name,
         address: addresses[index] || "",
+        selectedType: selectedTypes[index] || "School",
         class: classes[index] || "",
         section: sections[index] || "",
         roll_no: rollNos[index] || ""
@@ -93,6 +104,7 @@ exports.getUserProfile = async (phone) => {
     return {
         user_ID: row.user_ID,
         phone: row.phone,
+        bus_no: row.bus_no,
         children
     };
 };

@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import styles from './AccountpageStyle';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fetchUserProfile } from '@/backend/util/api';
+import { fetchUserProfile } from '@/app/services/api';
 import { Dropdown } from 'react-native-element-dropdown';
 
 type UserData = {
@@ -166,8 +166,7 @@ const UserAccountScreen: React.FC = () => {
                 style: 'destructive',
                 onPress: async () => {
                     try {
-                        await AsyncStorage.removeItem('phone');
-                        router.replace('/screens/LoginScreen/LoginScreen');
+                        await AsyncStorage.multiRemove(['phone', 'isLoggedIn']);                        router.replace('/screens/LoginScreen/LoginScreen');
                     } catch (error) {
                         console.error('Logout error:', error);
                         Alert.alert('Error', 'Failed to log out. Please try again.');

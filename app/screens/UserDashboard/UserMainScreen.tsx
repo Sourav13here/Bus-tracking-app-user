@@ -1,104 +1,157 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
-    StyleSheet,
     View,
     ActivityIndicator,
     Text,
-    TouchableOpacity,
-    ScrollView,
     Animated,
     Dimensions,
+    BackHandler,
+    TouchableOpacity,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView from "react-native-maps";
 import * as Location from "expo-location";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import { Image as RNImage } from "react-native";
-import { Image } from "react-native";
+import styles from "./UserDashboardStyle";
 
+// Components
+import Header from "./Components/Header";
+import UserMarker from "./Components/UserMarker";
+import BusList from "./Components/BusLIst";
+import BusMarker from "./Components/BusMarker";
 import { router } from "expo-router";
-import { BackHandler, FlatList } from "react-native";
-import { NativeSyntheticEvent, NativeScrollEvent } from "react-native";
+
+// Navigation Type
+type RootStackParamList = {
+    BusDetails: { busData: string }; // Modified to send full bus object
+};
+
+// Bus interface
+interface Bus {
+    bus_ID: number;
+    bus_name: string;
+    bus_latitude: string;
+    bus_longitude: string;
+    driver_name: string;
+    driver_phone_no: string;
+    route: string;
+}
 
 const { height: screenHeight } = Dimensions.get("window");
 
-export default function Map({ navigation }: { navigation: any }) {
+export default function UserDashboardMap() {
     const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [mapHeight] = useState(new Animated.Value(screenHeight * 0.65));
-    const [isMapExpanded, setIsMapExpanded] = useState(true);
-    const animationInProgress = useRef(false);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [mapHeight] = useState<Animated.Value>(new Animated.Value(screenHeight * 0.65));
+    const [isMapExpanded, setIsMapExpanded] = useState<boolean>(true);
+    const animationInProgress = useRef<boolean>(false);
     const mapRef = useRef<MapView | null>(null);
+    const [liveBuses, setLiveBuses] = useState<Bus[]>([]);
+    const [assignedBusNo, setAssignedBusNo] = useState<string | null>(null);
+    const [isUserAssigned, setIsUserAssigned] = useState<boolean>(false);
 
-    const availableBuses = [
-        { id: "1", driver: "Sarah Lee", phone: "+91-9123456789", bus: "7", route: "Main Gate → Central Market → Springfield School" },
-        { id: "2", driver: "Michael Scott", phone: "+91-9012345678", bus: "3", route: "Park Road → River Bridge → Springfield School" },
-        { id: "3", driver: "Jim Halpert", phone: "+91-9876543210", bus: "5", route: "Downtown → High Street → Springfield School" },
-        { id: "4", driver: "Pam Beesly", phone: "+91-9765432109", bus: "2", route: "East Market → Old Town → Springfield School" },
-        { id: "5", driver: "Dwight Schrute", phone: "+91-9123456700", bus: "8", route: "Farm Road → West End → Springfield School" },
-    ];
+    const fetchBusData = async () => {
+        try {
+            const user = await AsyncStorage.getItem("user_data");
+            const parsed = user ? JSON.parse(user) : null;
+            const phoneStr = parsed?.phone_no?.toString().trim();
+            const rawBusNo = parsed?.bus_no?.toString().trim();
+
+            const isAssigned = rawBusNo &&
+                rawBusNo.toLowerCase() !== "null" &&
+                rawBusNo !== "" &&
+                rawBusNo !== "undefined";
+
+            setIsUserAssigned(isAssigned);
+            setAssignedBusNo(isAssigned ? rawBusNo : null);
+
+            let filteredBuses: Bus[] = [];
+
+            if (isAssigned && rawBusNo) {
+                const url = `http://192.168.190.91:9000/api/bus-locations?phone=${encodeURIComponent(phoneStr || "")}`.trim();
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.success && Array.isArray(data.data)) {
+                    filteredBuses = data.data;
+                }
+            } else {
+                const res = await fetch("http://192.168.190.91:9000/api/bus-locations");
+                const data = await res.json();
+
+                if (data.success && Array.isArray(data.data)) {
+                    filteredBuses = data.data;
+                }
+            }
+
+            setLiveBuses(filteredBuses);
+        } catch (error) {
+            console.error("Error fetching bus data:", error);
+            setLiveBuses([]);
+        }
+    };
 
     useEffect(() => {
         (async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== "granted") {
-                alert("Permission to access location was denied");
+            try {
+                const cached = await AsyncStorage.getItem("cached_location");
+                if (cached) {
+                    const parsed = JSON.parse(cached) as Location.LocationObjectCoords;
+                    setLocation(parsed);
+                    setLoading(false);
+                }
+
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== "granted") {
+                    alert("Permission to access location was denied");
+                    if (!cached) setLoading(false);
+                    return;
+                }
+
+                const loc = await Location.getCurrentPositionAsync({});
+                await AsyncStorage.setItem("cached_location", JSON.stringify(loc.coords));
+                setLocation(loc.coords);
                 setLoading(false);
-                return;
+            } catch (err) {
+                console.error("Error fetching location:", err);
+                setLoading(false);
             }
-            let loc = await Location.getCurrentPositionAsync({});
-            setLocation(loc.coords);
-            setLoading(false);
         })();
     }, []);
 
     useEffect(() => {
-        const backAction = () => true;
-        const backHandler = BackHandler.addEventListener(
-            "hardwareBackPress",
-            backAction
-        );
+        fetchBusData();
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchBusData();
+        }, 15000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener("hardwareBackPress", () => false);
         return () => backHandler.remove();
     }, []);
 
-    const [showGif, setShowGif] = useState(true);
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setShowGif(false);
-        }, 20000); // 20 seconds
-
-        return () => clearTimeout(timer);
-    }, []);
-
-
-    const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const offsetY = event.nativeEvent.contentOffset.y;
+    const handleScrollEnd = useCallback(() => {
         if (animationInProgress.current) return;
 
-        if (offsetY > 20 && isMapExpanded) {
-            animationInProgress.current = true;
-            setIsMapExpanded(false);
-            Animated.timing(mapHeight, {
-                toValue: screenHeight * 0.4,
-                duration: 250,
-                useNativeDriver: false,
-            }).start(() => {
-                animationInProgress.current = false;
-            });
-        } else if (offsetY <= 20 && !isMapExpanded) {
-            animationInProgress.current = true;
-            setIsMapExpanded(true);
-            Animated.timing(mapHeight, {
-                toValue: screenHeight * 0.65,
-                duration: 250,
-                useNativeDriver: false,
-            }).start(() => {
-                animationInProgress.current = false;
-            });
-        }
-    }, [isMapExpanded, mapHeight]);
+        animationInProgress.current = true;
 
-    if (loading) {
+        Animated.timing(mapHeight, {
+            toValue: isMapExpanded ? screenHeight * 0.4 : screenHeight * 0.65,
+            duration: 250,
+            useNativeDriver: false,
+        }).start(() => {
+            animationInProgress.current = false;
+            setIsMapExpanded(!isMapExpanded);
+        });
+    }, [isMapExpanded]);
+
+    if (loading && !location) {
         return (
             <View style={styles.loader}>
                 <ActivityIndicator size="large" color="#2196F3" />
@@ -110,14 +163,16 @@ export default function Map({ navigation }: { navigation: any }) {
     if (!location) {
         return (
             <View style={styles.loader}>
-                <Text style={styles.errorText}>Location not available.</Text>
+                <Text style={styles.errorText}>
+                    Unable to access your location. Please enable location services.
+                </Text>
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
-            {/* Map */}
+            {/* Map View */}
             <Animated.View style={[styles.mapContainer, { height: mapHeight }]}>
                 <MapView
                     ref={mapRef}
@@ -129,42 +184,22 @@ export default function Map({ navigation }: { navigation: any }) {
                         longitudeDelta: 0.01,
                     }}
                 >
-                    <Marker
-                        coordinate={{
-                            latitude: location.latitude,
-                            longitude: location.longitude,
-                        }}
-                        title="Student Location"
-                        description="This is the student."
-                    >
-                        <View style={styles.markerContainer}>
-                            <Image
-                                source={require("../../../assets/images/studentMaker2.png")}
-                                style={styles.markerImage}
-                            />
-                        </View>
-
-                    </Marker>
+                    <UserMarker location={location} />
+                    {liveBuses.map((bus, index) => (
+                        <BusMarker
+                            key={index}
+                            latitude={parseFloat(bus.bus_latitude)}
+                            longitude={parseFloat(bus.bus_longitude)}
+                            busName={bus.bus_name}
+                            driverName={bus.driver_name}
+                            driverPhone={bus.driver_phone_no}
+                            imageSource={require("../../../assets/images/buslocation3.png")}
+                            markerStyle={styles.bus_markerContainer}
+                        />
+                    ))}
                 </MapView>
 
-                {/* Header */}
-                <View style={styles.header}>
-                    <View style={styles.logoContainer}>
-                        <Image source={require('../../../assets/images/school-bus.png')}
-                               style={styles.logo}/>
-
-                        <Text style={styles.companyName}>EduRide</Text>
-                    </View>
-                    <View style={styles.profileContainer}>
-                        <TouchableOpacity
-                            onPress={() => router.push('/screens/AccountPage/AccountPage')}
-                            style={styles.profileButton}
-                        >
-                            <Ionicons name="person-circle" size={24} color="#FFFFFF" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
+                <Header />
                 <TouchableOpacity
                     style={styles.myLocationButton}
                     onPress={() => {
@@ -183,227 +218,18 @@ export default function Map({ navigation }: { navigation: any }) {
                 </TouchableOpacity>
             </Animated.View>
 
-            {/* Available Buses */}
-            <View style={styles.busesContainer}>
-                <Text style={styles.sectionTitle}>Available Buses</Text>
-                <FlatList
-                    data={availableBuses}
-                    keyExtractor={(item) => item.id}
-                    onMomentumScrollEnd={handleScrollEnd}
-                    contentContainerStyle={styles.busListContainer}
-                    showsVerticalScrollIndicator={false}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate("BusDetails", { busNumber: item.bus })}
-                            style={styles.otherBusCard}
-                            activeOpacity={0.8}
-                        >
-                            <View style={styles.busRow}>
-                                <View style={styles.busPicSmall}>
-                                    <Ionicons name="bus" size={20} color="#2196F3" />
-                                </View>
-                                <View style={styles.busInfo}>
-                                    <View style={styles.driverRow}>
-                                        <Text style={styles.driverName}>{item.driver}</Text>
-                                        <Text style={styles.driverNumber}> | {item.phone}</Text>
-                                    </View>
-                                    <View style={styles.busNumberBoxAlt}>
-                                        <Text style={styles.busNumberTextAlt}>Bus #{item.bus}</Text>
-                                    </View>
-                                    <Text style={styles.routeText}>{item.route}</Text>
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-                    )}
-                />
-            </View>
+            {/* Bus List */}
+            <BusList
+                buses={liveBuses}
+                onScrollEnd={handleScrollEnd}
+                navigateToDetails={(bus: Bus) =>
+                    router.push({
+                        pathname: "/screens/UserDashboard/BusDetailsMap/BusDetails",
+                        params: { busData: JSON.stringify(bus),
+                            userLocation: JSON.stringify(location),}
+                    })
+                }
+            />
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#1A1A1A',
-    },
-    loader: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: '#1A1A1A',
-    },
-    loadingText: {
-        marginTop: 16,
-        fontSize: 16,
-        color: '#E5E5E5',
-        fontWeight: '500',
-    },
-    errorText: {
-        fontSize: 16,
-        color: '#E57373',
-        fontWeight: '500',
-        textAlign: 'center',
-        paddingHorizontal: 20,
-    },
-    header: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        paddingTop: 44,
-        paddingBottom: 12,
-        paddingHorizontal: 16,
-        backgroundColor: 'transparent',
-        zIndex: 1000,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-    },
-    logoContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: 'rgba(0,0,0,0.1)',
-        borderRadius: 25,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-
-    },
-    profileContainer: {
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        borderRadius: 25,
-        padding: 8,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-    logo: {
-        width: 30,
-        height: 30,
-
-    },
-
-    companyName: {
-        fontSize: 15,
-        fontWeight: "700",
-        marginLeft: 9,
-        color: "#000000",
-    },
-    profileButton: {
-        padding: 0,
-    },
-    mapContainer: {
-        overflow: "hidden",
-    },
-    map: {
-        flex: 1,
-    },
-    myLocationButton: {
-        position: "absolute",
-        bottom: 20,
-        right: 20,
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
-        padding: 12,
-        borderRadius: 28,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 6,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
-    },
-    busesContainer: {
-        flex: 1,
-        paddingTop: 20,
-        backgroundColor: '#FFFFFF',
-    },
-    sectionTitle: {
-        fontSize: 22,
-        fontWeight: "800",
-        color: "#1A1A1A",
-        paddingHorizontal: 20,
-        marginBottom: 16,
-    },
-    busListContainer: {
-        paddingHorizontal: 20,
-        paddingBottom: 20,
-    },
-    otherBusCard: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
-        borderWidth: 1,
-        borderColor: 'rgba(33, 150, 243, 0.1)',
-    },
-    busRow: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    busPicSmall: {
-        width: 48,
-        height: 48,
-        backgroundColor: "#E3F2FD",
-        borderRadius: 24,
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 16,
-        borderWidth: 2,
-        borderColor: 'rgba(33, 150, 243, 0.2)',
-    },
-    busInfo: {
-        flex: 1,
-    },
-    driverRow: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        alignItems: "center",
-        marginBottom: 8,
-    },
-    driverName: {
-        fontSize: 16,
-        fontWeight: "700",
-        color: "#1A1A1A",
-    },
-    driverNumber: {
-        fontSize: 14,
-        color: "#666",
-        fontWeight: '500',
-    },
-    busNumberBoxAlt: {
-        backgroundColor: "#2196F3",
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-        alignSelf: "flex-start",
-        marginBottom: 8,
-    },
-    busNumberTextAlt: {
-        color: "#FFFFFF",
-        fontSize: 12,
-        fontWeight: "700",
-    },
-    routeText: {
-        fontSize: 14,
-        color: "#666",
-        lineHeight: 20,
-        fontWeight: '500',
-    },
-    markerContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    markerImage: {
-        width: 40,   // change to desired size
-        height: 40,
-        resizeMode: 'contain',
-    },
-
-});
