@@ -117,6 +117,7 @@ const OTPVerification = () => {
                 const phoneStr = Array.isArray(phone) ? phone[0] : phone;
 
                 if (data.success) {
+                    await AsyncStorage.setItem("isLoggedIn", "true");
                     await AsyncStorage.setItem("phone", phoneStr);
                     if (data.hasProfile) {
                         router.push('/screens/UserDashboard/UserMainScreen');

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const loginService = require("../modules/auth/login.service");
+const { getBusLocations } = require("../util/api");
 const profileService = require("../modules/profile/profile.service");
 
 router.post("/request-otp", async (req, res) => {
@@ -56,7 +57,7 @@ router.post("/verify-otp", async (req, res) => {
 });
 
 router.post("/complete-profile", async (req, res) => {
-    const { phone, children } = req.body;
+    const { phone, children ,bus_no} = req.body;
 
     if (!phone || !children || !children.length) {
         return res.status(400).json({
@@ -92,6 +93,7 @@ router.post("/complete-profile", async (req, res) => {
     const addresses = children.map(c => c.address).join(",");
     const classes = children.map(c => c.classValue).join(",");
     const sections = children.map(c => c.section).join(",");
+    const selected_type = children.map((c) => c.selectedType).join(",");
     const rollNos = children.map(c => c.rollNo).join(",");
 
     try {
@@ -100,8 +102,10 @@ router.post("/complete-profile", async (req, res) => {
             user_name: names,
             user_address: addresses,
             class_or_semester: classes,
+            selected_type:selected_type,
             section_or_branch: sections,
-            roll_no: rollNos
+            roll_no: rollNos,
+            bus_no:bus_no|| null
         });
 
         if (result.affectedRows > 0) {
@@ -149,6 +153,11 @@ router.get("/profile", async (req, res) => {
         });
     }
 });
+router.get("/bus-locations", (req, res, next) => {
+    console.log("Received GET /bus-locations with query:", req.query);
+    next();
+}, getBusLocations);
+
 
 
 

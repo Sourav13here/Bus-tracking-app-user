@@ -7,11 +7,6 @@
     "icon": "./assets/images/school-bus.png",
     "scheme": "userexpo",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/school-bus.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
@@ -41,6 +36,11 @@
       "eas": {
         "projectId": "7947b4ef-f367-4f32-b5e6-47d3949bf784"
       }
+    },
+    "splash": {
+      "image": "./assets/images/school-bus.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
     }
   }
 }
