@@ -12,6 +12,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         backgroundColor: '#1A1A1A',
     },
+
+
+    visited: {
+        opacity: 0.35
+    },
     loadingText: {
         marginTop: 16,
         fontSize: 16,
@@ -197,10 +202,53 @@ const styles = StyleSheet.create({
     bus_markerImage:{
         width:"100%",
         height:"100%",
-        resizeMode:"contain"
+        resizeMode:"contain",
+
 
     }
 
 });
 
-export default styles;
+const greyStyle = [
+    {
+        elementType: "geometry",
+        stylers: [{ color: "#f5f7fa" }],
+    },
+
+
+
+    {
+        featureType: "road",
+        elementType: "geometry",
+        stylers: [{ color: "#c1c8d1" }],
+    },
+    {
+        featureType: "road",
+        elementType: "geometry.stroke",
+        stylers: [{ color: "#b0b8c1" }],
+    },
+
+    {
+        featureType: "water",
+        elementType: "geometry",
+        stylers: [{ color: "#a4c4d4" }],
+    },
+
+    {
+        featureType: "landscape",
+        elementType: "geometry",
+        stylers: [{ color: "#e6ebf0" }],
+    },
+
+
+    {
+        featureType: "transit",
+        elementType: "all",
+        stylers: [{ visibility: "off" }],
+    },
+
+
+
+];
+export default styles
+

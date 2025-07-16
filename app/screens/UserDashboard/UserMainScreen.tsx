@@ -193,7 +193,7 @@ export default function UserDashboardMap() {
                             busName={bus.bus_name}
                             driverName={bus.driver_name}
                             driverPhone={bus.driver_phone_no}
-                            imageSource={require("../../../assets/images/buslocation3.png")}
+                            // imageSource={require("../../../assets/images/buslocation3.png")}
                             markerStyle={styles.bus_markerContainer}
                         />
                     ))}
