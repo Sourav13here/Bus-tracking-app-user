@@ -9,7 +9,6 @@ const getBusLocations = async (req, res) => {
         let busNo = null;
 
         if (busNoFromQuery) {
-            // ✅ Prioritize busNo from query
             busNo = busNoFromQuery;
         } else if (phone && /^\d{10}$/.test(phone)) {
             // fallback only if no busNo passed
@@ -25,7 +24,6 @@ const getBusLocations = async (req, res) => {
                 }
             }
         }
-        console.log("Final busNo used in query:", busNo);
 
         const buses = await getLiveBusLocations(busNo); // pass to SQL
         res.json({ success: true, data: Array.isArray(buses) ? buses : [] });

@@ -2,7 +2,10 @@ const express = require("express");
 const router = express.Router();
 const loginService = require("../modules/auth/login.service");
 const { getBusLocations } = require("../util/api");
+const busService = require("../modules/bus/bus.service");
+const haversine = require("../util/haversine");
 const profileService = require("../modules/profile/profile.service");
+
 
 router.post("/request-otp", async (req, res) => {
     try {
@@ -154,9 +157,76 @@ router.get("/profile", async (req, res) => {
     }
 });
 router.get("/bus-locations", (req, res, next) => {
-    console.log("Received GET /bus-locations with query:", req.query);
     next();
 }, getBusLocations);
+
+router.get("/bus-route", async (req, res) => {
+    try {
+        const { busName } = req.query;
+        if (!busName) {
+            return res.status(400).json({ error: "busName is required" });
+        }
+
+        const route = await busService.getBusRoute(busName);
+        return res.json({ route });
+    } catch (error) {
+        console.error("Error in /bus-route:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+
+// Sample school coordinates (adjust if different)
+const SCHOOL_LAT = 26.179404;
+const SCHOOL_LNG = 91.734876;
+
+/* POST  /api/update-location
+ * Body: { bus_no, latitude, longitude }
+ */
+router.post("/update-location", async (req, res) => {
+    try {
+        const { latitude, longitude, bus_no } = req.body || {};
+        if (!latitude || !longitude || !bus_no) {
+            return res.status(400).json({ success:false, message:"Missing params" });
+        }
+
+        /* always work with numbers */
+        const latNum = Number(latitude);
+        const lonNum = Number(longitude);
+
+        await busService.saveBusLocation(bus_no, latNum, lonNum);
+
+        const visited = await busService.markNearestStoppage(bus_no, latNum, lonNum);
+
+        const route  = await busService.getBusRoute(bus_no);
+        const pending  = route.filter(r => r.has_arived === 0);
+        let   arrived  = false;
+        if (!pending.length) {
+            await busService.markStoppageAsArrived(bus_no);
+            arrived = true;
+        }
+
+        const distSchool = haversine(latNum, lonNum, 26.179404, 91.734876);
+        if (distSchool < 100) {
+            await busService.resetRoute(bus_no);
+        }
+
+        res.json({
+            success : true,
+            visited ,
+            arrived ,
+            message : arrived
+                ? "Bus completed all stoppages."
+                : visited
+                    ? "Stoppage marked as visited."
+                    : "Location updated."
+        });
+    } catch (err) {
+        console.error("update‑location failed:", err);
+        res.status(500).json({ success:false, message:"Server error" });
+    }
+});
+
 
 
 
