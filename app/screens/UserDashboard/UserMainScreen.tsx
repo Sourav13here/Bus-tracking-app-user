@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+// UserDashboardMap.tsx
+
+import React, {useEffect, useState, useRef, useCallback} from "react";
 import {
     View,
     ActivityIndicator,
@@ -11,22 +13,27 @@ import {
 import MapView from "react-native-maps";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons";
+import {Ionicons} from "@expo/vector-icons";
 import styles from "./UserDashboardStyle";
+import { Switch } from "react-native";
 
-// Components
+
 import Header from "./Components/Header";
 import UserMarker from "./Components/UserMarker";
 import BusList from "./Components/BusLIst";
 import BusMarker from "./Components/BusMarker";
-import { router } from "expo-router";
+import {router} from "expo-router";
 
-// Navigation Type
-type RootStackParamList = {
-    BusDetails: { busData: string }; // Modified to send full bus object
-};
+const greyMapStyle = [
+    {elementType: "geometry", stylers: [{color: "#f5f7fa"}]},
+    {elementType: "labels.icon", stylers: [{visibility: "off"}]},
+    {featureType: "road", elementType: "geometry", stylers: [{color: "#c1c8d1"}]},
+    {featureType: "road", elementType: "geometry.stroke", stylers: [{color: "#b0b8c1"}]},
+    {featureType: "water", elementType: "geometry", stylers: [{color: "#a4c4d4"}]},
+    {featureType: "landscape", elementType: "geometry", stylers: [{color: "#e6ebf0"}]},
+    {featureType: "transit", elementType: "all", stylers: [{visibility: "off"}]},
+];
 
-// Bus interface
 interface Bus {
     bus_ID: number;
     bus_name: string;
@@ -37,18 +44,36 @@ interface Bus {
     route: string;
 }
 
-const { height: screenHeight } = Dimensions.get("window");
+const {height: screenHeight} = Dimensions.get("window");
+
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const R = 6371e3;
+    const φ1 = toRad(lat1);
+    const φ2 = toRad(lat2);
+    const Δφ = toRad(lat2 - lat1);
+    const Δλ = toRad(lon2 - lon1);
+
+    const a = Math.sin(Δφ / 2) ** 2 +
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
 
 export default function UserDashboardMap() {
     const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [mapHeight] = useState<Animated.Value>(new Animated.Value(screenHeight * 0.65));
-    const [isMapExpanded, setIsMapExpanded] = useState<boolean>(true);
-    const animationInProgress = useRef<boolean>(false);
+    const [loading, setLoading] = useState(true);
+    const [mapHeight] = useState(new Animated.Value(screenHeight * 0.65));
+    const [isMapExpanded, setIsMapExpanded] = useState(true);
+    const animationInProgress = useRef(false);
     const mapRef = useRef<MapView | null>(null);
     const [liveBuses, setLiveBuses] = useState<Bus[]>([]);
     const [assignedBusNo, setAssignedBusNo] = useState<string | null>(null);
-    const [isUserAssigned, setIsUserAssigned] = useState<boolean>(false);
+    const [isUserAssigned, setIsUserAssigned] = useState(false);
+    const [userStatus, setUserStatus] = useState<"inside" | "outside">("outside");
+    const [nearestBus, setNearestBus] = useState<Bus | null>(null);
+    const [toggleValue, setToggleValue] = useState(userStatus === "inside");
 
     const fetchBusData = async () => {
         try {
@@ -68,7 +93,7 @@ export default function UserDashboardMap() {
             let filteredBuses: Bus[] = [];
 
             if (isAssigned && rawBusNo) {
-                const url = `http://192.168.190.91:9000/api/bus-locations?phone=${encodeURIComponent(phoneStr || "")}`.trim();
+                const url = `http://192.168.38.91:9000/api/bus-locations?phone=${encodeURIComponent(phoneStr || "")}`.trim();
                 const res = await fetch(url);
                 const data = await res.json();
 
@@ -76,7 +101,7 @@ export default function UserDashboardMap() {
                     filteredBuses = data.data;
                 }
             } else {
-                const res = await fetch("http://192.168.190.91:9000/api/bus-locations");
+                const res = await fetch("http://192.168.38.91:9000/api/bus-locations");
                 const data = await res.json();
 
                 if (data.success && Array.isArray(data.data)) {
@@ -90,6 +115,10 @@ export default function UserDashboardMap() {
             setLiveBuses([]);
         }
     };
+    const handleToggle = (value: boolean) => {
+        setToggleValue(value);
+        setUserStatus(value ? "inside" : "outside");
+    };
 
     useEffect(() => {
         (async () => {
@@ -101,7 +130,7 @@ export default function UserDashboardMap() {
                     setLoading(false);
                 }
 
-                const { status } = await Location.requestForegroundPermissionsAsync();
+                const {status} = await Location.requestForegroundPermissionsAsync();
                 if (status !== "granted") {
                     alert("Permission to access location was denied");
                     if (!cached) setLoading(false);
@@ -121,15 +150,24 @@ export default function UserDashboardMap() {
 
     useEffect(() => {
         fetchBusData();
+        const interval = setInterval(() => fetchBusData(), 15000);
+        return () => clearInterval(interval);
     }, []);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            fetchBusData();
-        }, 15000);
-
-        return () => clearInterval(interval);
-    }, []);
+        if (!location || liveBuses.length === 0) return;
+        let minDist = Infinity;
+        let closest: Bus | null = null;
+        for (let bus of liveBuses) {
+            const d = getDistance(location.latitude, location.longitude, parseFloat(bus.bus_latitude), parseFloat(bus.bus_longitude));
+            if (d < minDist) {
+                minDist = d;
+                closest = bus;
+            }
+        }
+        if (minDist <= 50 && closest) setNearestBus(closest);
+        else setNearestBus(null);
+    }, [location, liveBuses]);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener("hardwareBackPress", () => false);
@@ -138,7 +176,6 @@ export default function UserDashboardMap() {
 
     const handleScrollEnd = useCallback(() => {
         if (animationInProgress.current) return;
-
         animationInProgress.current = true;
 
         Animated.timing(mapHeight, {
@@ -154,7 +191,7 @@ export default function UserDashboardMap() {
     if (loading && !location) {
         return (
             <View style={styles.loader}>
-                <ActivityIndicator size="large" color="#2196F3" />
+                <ActivityIndicator size="large" color="#2196F3"/>
                 <Text style={styles.loadingText}>Loading your location...</Text>
             </View>
         );
@@ -172,19 +209,21 @@ export default function UserDashboardMap() {
 
     return (
         <View style={styles.container}>
-            {/* Map View */}
-            <Animated.View style={[styles.mapContainer, { height: mapHeight }]}>
+            <Animated.View style={[styles.mapContainer, {height: mapHeight}]}>
                 <MapView
                     ref={mapRef}
                     style={styles.map}
+                    customMapStyle={greyMapStyle}
                     initialRegion={{
                         latitude: location.latitude,
                         longitude: location.longitude,
                         latitudeDelta: 0.01,
                         longitudeDelta: 0.01,
-                    }}
-                >
-                    <UserMarker location={location} />
+                    }}>
+                    {userStatus === "outside" && (
+                        <UserMarker location={location}/>
+                    )}
+
                     {liveBuses.map((bus, index) => (
                         <BusMarker
                             key={index}
@@ -193,13 +232,35 @@ export default function UserDashboardMap() {
                             busName={bus.bus_name}
                             driverName={bus.driver_name}
                             driverPhone={bus.driver_phone_no}
-                            // imageSource={require("../../../assets/images/buslocation3.png")}
                             markerStyle={styles.bus_markerContainer}
+                            onCalloutPress={() =>
+                                router.push({
+                                    pathname: "/screens/UserDashboard/BusDetailsMap/BusDetails",
+                                    params: {
+                                        busData: JSON.stringify(bus),
+                                        userLocation: JSON.stringify(location),
+                                        userStatus:userStatus,
+                                    },
+                                })
+                            }
                         />
                     ))}
+
                 </MapView>
 
-                <Header />
+                <Header/>
+                <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingTop: 4 }}>
+                    <Text style={{ marginRight: 10, fontSize: 14, color: "#ffffff" }}>Inside Bus</Text>
+                    <Switch
+                        value={toggleValue}
+                        onValueChange={handleToggle}
+                        thumbColor={toggleValue ? "#2196F3" : "#f4f3f4"}
+                        trackColor={{ false: "#ccc", true: "#90caf9" }}
+                    />
+
+                </View>
+
+                {/* My Location Button */}
                 <TouchableOpacity
                     style={styles.myLocationButton}
                     onPress={() => {
@@ -218,15 +279,17 @@ export default function UserDashboardMap() {
                 </TouchableOpacity>
             </Animated.View>
 
-            {/* Bus List */}
             <BusList
                 buses={liveBuses}
                 onScrollEnd={handleScrollEnd}
                 navigateToDetails={(bus: Bus) =>
                     router.push({
                         pathname: "/screens/UserDashboard/BusDetailsMap/BusDetails",
-                        params: { busData: JSON.stringify(bus),
-                            userLocation: JSON.stringify(location),}
+                        params: {
+                            busData: JSON.stringify(bus),
+                            userLocation: JSON.stringify(location),
+                            userStatus: userStatus,
+                        }
                     })
                 }
             />
