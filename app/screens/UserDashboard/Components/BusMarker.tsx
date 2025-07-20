@@ -11,6 +11,7 @@ interface BusMarkerProps {
     driverPhone: string;
     markerStyle?: object;
     emoji?: string;
+    onCalloutPress?: () => void; // <-- add this line
 }
 
 const BusMarker: React.FC<BusMarkerProps> = ({
@@ -20,12 +21,14 @@ const BusMarker: React.FC<BusMarkerProps> = ({
                                                  driverName,
                                                  driverPhone,
                                                  markerStyle,
-                                                 emoji = "🚌",
+                                                 emoji = "🚍",
+                                                 onCalloutPress, // <-- and this line
                                              }) => (
     <Marker
         coordinate={{ latitude, longitude }}
-        title={`Bus #${busName}`}
-        description={`Driver: ${driverName}\n ${driverPhone}`}
+        title={`${busName}`}
+        description={`Driver: ${driverName}`}
+        onCalloutPress={onCalloutPress} // <-- attach handler here
     >
         <View style={[styles.busMarker, markerStyle]}>
             <Text style={styles.busEmoji}>{emoji}</Text>
@@ -42,7 +45,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         borderWidth: 3,
-        borderColor: "#2196F3",
+        borderColor: "#070707",
         elevation: 5,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },

@@ -9,5 +9,6 @@ export default {
         extra: {
             orsApiKey: process.env.EXPO_PUBLIC_ORS_API_KEY,
         },
+        plugins: ["expo-router"],
     },
 };

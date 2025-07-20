@@ -185,8 +185,8 @@ const SCHOOL_LNG = 91.734876;
  */
 router.post("/update-location", async (req, res) => {
     try {
-        const { latitude, longitude, bus_no } = req.body || {};
-        if (!latitude || !longitude || !bus_no) {
+        const { latitude, longitude, bus_name } = req.body || {};
+        if (!latitude || !longitude || !bus_name) {
             return res.status(400).json({ success:false, message:"Missing params" });
         }
 
@@ -194,21 +194,21 @@ router.post("/update-location", async (req, res) => {
         const latNum = Number(latitude);
         const lonNum = Number(longitude);
 
-        await busService.saveBusLocation(bus_no, latNum, lonNum);
+        await busService.saveBusLocation(bus_name, latNum, lonNum);
 
-        const visited = await busService.markNearestStoppage(bus_no, latNum, lonNum);
+        const visited = await busService.markNearestStoppage(bus_name, latNum, lonNum);
 
-        const route  = await busService.getBusRoute(bus_no);
+        const route  = await busService.getBusRoute(bus_name);
         const pending  = route.filter(r => r.has_arived === 0);
         let   arrived  = false;
         if (!pending.length) {
-            await busService.markStoppageAsArrived(bus_no);
+            await busService.markStoppageAsArrived(bus_name);
             arrived = true;
         }
 
         const distSchool = haversine(latNum, lonNum, 26.179404, 91.734876);
         if (distSchool < 100) {
-            await busService.resetRoute(bus_no);
+            await busService.resetRoute(bus_name);
         }
 
         res.json({
@@ -223,6 +223,8 @@ router.post("/update-location", async (req, res) => {
         });
     } catch (err) {
         console.error("update‑location failed:", err);
+        if (err.sqlMessage) console.error("SQL error:", err.sqlMessage);
+
         res.status(500).json({ success:false, message:"Server error" });
     }
 });

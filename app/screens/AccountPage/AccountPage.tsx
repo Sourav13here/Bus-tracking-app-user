@@ -125,7 +125,7 @@ const UserAccountScreen: React.FC = () => {
                 })),
             };
 
-            const response = await fetch('http://192.168.190.91:9000/api/complete-profile', {
+            const response = await fetch('http://192.168.38.91:9000/api/complete-profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),

@@ -8,7 +8,7 @@ exports.updateUserProfile = async ({
                                        class_or_semester,
                                        section_or_branch,
                                        roll_no,
-                                       bus_no
+                                       bus_name
                                    }) => {
     const result = await db.query(
         `UPDATE users SET
@@ -18,7 +18,7 @@ exports.updateUserProfile = async ({
                           section_or_branch = ?,
                           selected_type =?,
                           roll_no = ?,
-                          bus_no=?,
+                          bus_name=?,
                           created_by = ?,
                           updated_at = NOW()
          WHERE phone_no = ?`,
@@ -29,7 +29,7 @@ exports.updateUserProfile = async ({
             section_or_branch,
             selected_type,
             roll_no,
-            bus_no,
+            bus_name,
             user_name, // created_by = user_name
             phone
         ]
@@ -60,7 +60,7 @@ exports.getUserProfile = async (phone) => {
       class_or_semester,
       section_or_branch,
       roll_no,
-      bus_no
+      bus_name
     FROM users
     WHERE phone_no = ?`,
         [phone]
@@ -104,7 +104,7 @@ exports.getUserProfile = async (phone) => {
     return {
         user_ID: row.user_ID,
         phone: row.phone,
-        bus_no: row.bus_no,
+        bus_name: row.bus_name,
         children
     };
 };

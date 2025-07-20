@@ -13,12 +13,12 @@ const getBusLocations = async (req, res) => {
         } else if (phone && /^\d{10}$/.test(phone)) {
             // fallback only if no busNo passed
             const result = await db.query(
-                "SELECT TRIM(bus_no) AS bus_no FROM users WHERE phone_no = ?",
+                "SELECT TRIM(bus_name) AS bus_name FROM users WHERE phone_no = ?",
                 [phone]
             );
 
             if (Array.isArray(result) && result.length > 0) {
-                const assignedBus = result[0].bus_no;
+                const assignedBus = result[0].bus_name;
                 if (assignedBus) {
                     busNo = assignedBus.trim();
                 }

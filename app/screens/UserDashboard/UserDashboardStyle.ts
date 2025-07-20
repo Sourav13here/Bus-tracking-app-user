@@ -203,9 +203,92 @@ const styles = StyleSheet.create({
         width:"100%",
         height:"100%",
         resizeMode:"contain",
+    },
+    calloutContainer: {
+        padding: 10,
+        backgroundColor: "#fff",
+        borderRadius: 10,
+        alignItems: "center",
+        width: 160,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    button: {
+        backgroundColor: "#2196F3",
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 6,
+        marginVertical: 5,
+    },
+    buttonText: {
+        color: "#fff",
+        fontSize: 14,
+        fontWeight: "bold",
+    },
+    disabled: {
+        backgroundColor: "#ccc",
+    },
+    statusToggleButton: {
+        position: "absolute",
+        top: 60,
+        right: 16,
+        backgroundColor: "#2196F3",
+        padding: 8,
+        borderRadius: 8,
+        flexDirection: "row",
+        alignItems: "center",
+        zIndex: 999,
+    },
+    statusToggleText: {
+        color: "white",
+        marginLeft: 6,
+        fontSize: 14,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalBox: {
+        width: "80%",
+        backgroundColor: "white",
+        borderRadius: 12,
+        padding: 20,
+        alignItems: "center",
+        elevation: 10,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 16,
+    },
+    modalButton: {
+        width: "100%",
+        padding: 12,
+        backgroundColor: "#e0e0e0",
+        borderRadius: 8,
+        alignItems: "center",
+        marginTop: 10,
+    },
+    selectedButton: {
+        backgroundColor: "#2196F3",
+    },
+    modalButtonText: {
+        color: "#000",
+        fontSize: 16,
+    },
+    modalCancelButton: {
+        marginTop: 16,
+    },
+    modalCancelText: {
+        fontSize: 14,
+        color: "#666",
+    },
 
-
-    }
 
 });
 
@@ -246,6 +329,8 @@ const greyStyle = [
         elementType: "all",
         stylers: [{ visibility: "off" }],
     },
+
+
 
 
 
