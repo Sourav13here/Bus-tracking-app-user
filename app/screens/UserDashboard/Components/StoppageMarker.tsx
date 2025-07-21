@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet,Image } from 'react-native';
-import { Marker, Callout } from 'react-native-maps';
+import { View, Text, StyleSheet, Image } from 'react-native';
+import { Marker } from 'react-native-maps';
 
 interface Props {
     coordinate: { latitude: number; longitude: number };
@@ -21,6 +21,7 @@ const StoppageMarker: React.FC<Props> = ({
                                          }) => (
     <Marker
         coordinate={coordinate}
+        title={title} // ✅ Native popup title (like in BusMarker)
         anchor={{ x: 0.5, y: 1 }}
         calloutAnchor={{ x: 0.5, y: 0.3 }}
     >
@@ -29,7 +30,6 @@ const StoppageMarker: React.FC<Props> = ({
             isVisited && styles.visitedContainer,
             markerStyle
         ]}>
-            {/* Main marker circle */}
             <View style={[
                 styles.markerCircle,
                 isVisited && styles.visitedCircle
@@ -49,16 +49,7 @@ const StoppageMarker: React.FC<Props> = ({
                     </Text>
                 )}
             </View>
-
-
         </View>
-
-        {/* Custom callout */}
-        <Callout tooltip>
-            <View style={styles.calloutContainer}>
-                <Text style={styles.calloutText}>{title}</Text>
-            </View>
-        </Callout>
     </Marker>
 );
 
@@ -98,31 +89,6 @@ const styles = StyleSheet.create({
     },
     visitedContainer: {
         opacity: 0.8,
-    },
-    markerTail: {
-        width: 0,
-        height: 0,
-        borderLeftWidth: 6,
-        borderRightWidth: 6,
-        borderTopWidth: 10,
-        borderLeftColor: 'transparent',
-        borderRightColor: 'transparent',
-        borderTopColor: '#ae5151',
-        marginTop: -1,
-    },
-
-    calloutContainer: {
-        backgroundColor: '#2C3E50',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 8,
-        maxWidth: 200,
-    },
-    calloutText: {
-        color: '#FFFFFF',
-        fontSize: 14,
-        fontWeight: '500',
-        textAlign: 'center',
     },
 });
 
