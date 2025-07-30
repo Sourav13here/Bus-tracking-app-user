@@ -1,4 +1,4 @@
-const db = require("../../config/dbconfig");
+const db = require("../../Config/dbconfig");
 const otpHelper = require("../../util/otp");
 
 // Generate and save OTP

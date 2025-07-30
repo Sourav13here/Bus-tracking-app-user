@@ -1,3 +1,5 @@
+		//working bus_details.tsx file
+
 /* BusDetails.tsx — final version: shift-aware routing + banner logic */
 /* eslint-disable camelcase */
 import React, { useEffect, useMemo, useState, useRef } from "react";
@@ -33,7 +35,7 @@ interface Stoppage {
     stoppage_name: string;
     stoppage_latitude: string;
     stoppage_longitude: string;
-    has_arived: number;
+    has_arrived: number;
 }
 
 type LatLng = { latitude: number; longitude: number };
@@ -61,30 +63,70 @@ const BusDetails: React.FC = () => {
         userStatus?: "inside" | "outside";
     }>();
 
-
     const mapRef = useRef<MapView>(null);
     const [bus, setBus] = useState<Bus | null>(null);
     const [userLoc, setULoc] = useState<LatLng | null>(null);
     const [stoppages, setStops] = useState<Stoppage[]>([]);
-    const [polyline, setPoly] = useState<LatLng[]>([]);
+    const [polyline, setPoly] = useState<LatLng[]>([]); 
     const [loading, setLoad] = useState(true);
     const [banner, setBanner] = useState<string | null>(null);
 
     const isMorning = new Date().getHours() < AFTERNOON_CUTOFF_HR;
 
+    const fetchLiveBusLocation = async (busName: string) => {
+        try {
+            const res = await fetch(`http://192.168.39.204:9000/api/bus-locations`);
+            const json = await res.json();
+            
+            if (json.success && Array.isArray(json.data)) {
+
+                const updatedBus = json.data.find((b: any) => b.bus_name === busName);
+                
+                if (updatedBus) {
+                    setBus((prev) => prev ? {
+                        ...prev,
+                        bus_latitude: updatedBus.bus_latitude,
+                        bus_longitude: updatedBus.bus_longitude
+                    } : null);
+                } else {
+                    console.warn("Bus not found in live data:", busName);
+                }
+            } else {
+                console.warn("Invalid API response structure:", json);
+            }
+        } catch (err) {
+            console.error("Failed to fetch live bus location", err);
+        }
+    };
+
+    // Live location tracking
+    useEffect(() => {
+        if (!bus?.bus_name) return;
+
+        fetchLiveBusLocation(bus.bus_name);
+
+        const interval = setInterval(() => {
+            fetchLiveBusLocation(bus.bus_name);
+        }, 3000); 
+
+        return () => clearInterval(interval);
+    }, [bus?.bus_name]);
+
     useEffect(() => {
         (async () => {
             if (typeof busData !== "string") return;
 
-            setBus(JSON.parse(busData));
+            const parsedBus = JSON.parse(busData);
+            setBus(parsedBus);
+            
             if (typeof userLocRaw === "string") {
                 setULoc(JSON.parse(userLocRaw));
             }
 
             try {
                 const res = await fetch(
-                    `http://192.168.38.91:9000/api/bus-route?busName=${encodeURIComponent(
-                        JSON.parse(busData).bus_name
+                    `http://192.168.39.204:9000/api/bus-route?busName=${encodeURIComponent(
+                        parsedBus.bus_name
                     )}`
                 );
                 const json = await res.json();
@@ -97,8 +139,29 @@ const BusDetails: React.FC = () => {
         })();
     }, [busData, userLocRaw]);
 
+    // For dynamically updating the stoppages
+    useEffect(() => {
+        if (!bus) return;
+
+        const interval = setInterval(async () => {
+            try {
+                const res = await fetch(
+                    `http://192.168.39.204:9000/api/bus-route?busName=${encodeURIComponent(bus.bus_name)}`
+                );
+                const json = await res.json();
+                console.log("Updated route:", json.route);
+                setStops(Array.isArray(json.route) ? json.route : []);
+            } catch (e) {
+                console.warn("Stoppage refresh failed:", e);
+            }
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [bus?.bus_name]);
+
+
     const unvisited = useMemo(() => {
-        const list = stoppages.filter((s) => s.has_arived === 0);
+        const list = stoppages.filter((s) => s.has_arrived === 0);
         return isMorning
             ? list.sort((a, b) => a.stoppage_number - b.stoppage_number)
             : list.sort((a, b) => b.stoppage_number - a.stoppage_number);
@@ -106,7 +169,13 @@ const BusDetails: React.FC = () => {
 
     useEffect(() => {
         (async () => {
-            if (!bus || isMorning) {
+            if (!bus || !bus.bus_latitude || !bus.bus_longitude) {
+                return; // Don't clear polyline, just return if bus data is incomplete
+            }
+
+            // Only skip routes for morning hours if you don't want morning routes
+            // Comment out these lines if you want routes to show in morning too
+            if (isMorning) {
                 setPoly([]);
                 return;
             }
@@ -119,23 +188,28 @@ const BusDetails: React.FC = () => {
                             (s) =>
                                 [+s.stoppage_longitude, +s.stoppage_latitude] as [number, number]
                         ),
+                        [SCHOOL.longitude, SCHOOL.latitude],
                     ]
                     : [
                         [+bus.bus_longitude, +bus.bus_latitude],
-                        [+bus.bus_longitude, +bus.bus_latitude],
+                        [SCHOOL.longitude, SCHOOL.latitude],
                     ];
 
             try {
-                setPoly(await orsRoute(coords));
+                const newRoute = await orsRoute(coords);
+                if (newRoute && newRoute.length > 0) {
+                    setPoly(newRoute);
+                }
             } catch (e) {
                 console.error("ORS error:", e);
+                // Don't clear the polyline on API error, keep the previous route
             }
         })();
-    }, [bus, unvisited, isMorning]);
+    }, [bus?.bus_latitude, bus?.bus_longitude, unvisited, isMorning]);
 
     useEffect(() => {
         if (!bus) return;
-        const allVisited = stoppages.every((s) => s.has_arived === 1);
+        const allVisited = stoppages.every((s) => s.has_arrived === 1);
 
         if (allVisited) {
             if (isMorning) {
@@ -174,7 +248,6 @@ const BusDetails: React.FC = () => {
                     longitudeDelta: 0.05,
                 }}
             >
-
                 {userLoc && userStatus !== "inside" && (
                     <UserMarker key="user" location={userLoc} />
                 )}
@@ -190,16 +263,18 @@ const BusDetails: React.FC = () => {
                         imageSource={require("../../../../assets/images/stoppage10.png")}
                     />
                 ))}
-                <BusMarker
-                    latitude={+bus.bus_latitude}
-                    longitude={+bus.bus_longitude}
-                    busName={bus.bus_name}
-                    driverName={bus.driver_name}
-                    driverPhone={bus.driver_phone_no}
-                    markerStyle={styles.bus_markerContainer}
-                    emoji="🚍"
-                    key="bus"
-                />
+                {bus.bus_latitude && bus.bus_longitude && (
+                    <BusMarker
+                        latitude={+bus.bus_latitude}
+                        longitude={+bus.bus_longitude}
+                        busName={bus.bus_name}
+                        driverName={bus.driver_name}
+                        driverPhone={bus.driver_phone_no}
+                        markerStyle={styles.bus_markerContainer}
+                        emoji="🚍"
+                        key="bus"
+                    />
+                )}
                 {polyline.length > 1 && (
                     <Polyline coordinates={polyline} strokeColor="#464657" strokeWidth={3} />
                 )}
@@ -207,17 +282,19 @@ const BusDetails: React.FC = () => {
 
             <TouchableOpacity
                 style={styles.myLocationButton}
-                onPress={() =>
-                    mapRef.current?.animateToRegion(
-                        {
-                            latitude: +bus.bus_latitude,
-                            longitude: +bus.bus_longitude,
-                            latitudeDelta: 0.02,
-                            longitudeDelta: 0.02,
-                        },
-                        600
-                    )
-                }
+                onPress={() => {
+                    if (bus?.bus_latitude && bus?.bus_longitude) {
+                        mapRef.current?.animateToRegion(
+                            {
+                                latitude: +bus.bus_latitude,
+                                longitude: +bus.bus_longitude,
+                                latitudeDelta: 0.02,
+                                longitudeDelta: 0.02,
+                            },
+                            600
+                        );
+                    }
+                }}
             >
                 <Ionicons name="locate" size={22} color="#fff" />
             </TouchableOpacity>

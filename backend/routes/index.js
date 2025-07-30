@@ -199,7 +199,7 @@ router.post("/update-location", async (req, res) => {
         const visited = await busService.markNearestStoppage(bus_name, latNum, lonNum);
 
         const route  = await busService.getBusRoute(bus_name);
-        const pending  = route.filter(r => r.has_arived === 0);
+        const pending  = route.filter(r => r.has_arrived === 0);
         let   arrived  = false;
         if (!pending.length) {
             await busService.markStoppageAsArrived(bus_name);
@@ -222,7 +222,7 @@ router.post("/update-location", async (req, res) => {
                     : "Location updated."
         });
     } catch (err) {
-        console.error("update‑location failed:", err);
+        console.error("update-location failed:", err);
         if (err.sqlMessage) console.error("SQL error:", err.sqlMessage);
 
         res.status(500).json({ success:false, message:"Server error" });

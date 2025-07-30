@@ -93,7 +93,7 @@ export default function UserDashboardMap() {
             let filteredBuses: Bus[] = [];
 
             if (isAssigned && rawBusNo) {
-                const url = `http://192.168.38.91:9000/api/bus-locations?phone=${encodeURIComponent(phoneStr || "")}`.trim();
+                const url = `http://192.168.39.204:9000/api/bus-locations?phone=${encodeURIComponent(phoneStr || "")}`.trim();
                 const res = await fetch(url);
                 const data = await res.json();
 
@@ -101,7 +101,7 @@ export default function UserDashboardMap() {
                     filteredBuses = data.data;
                 }
             } else {
-                const res = await fetch("http://192.168.38.91:9000/api/bus-locations");
+                const res = await fetch("http://192.168.39.204:9000/api/bus-locations");
                 const data = await res.json();
 
                 if (data.success && Array.isArray(data.data)) {
@@ -150,7 +150,7 @@ export default function UserDashboardMap() {
 
     useEffect(() => {
         fetchBusData();
-        const interval = setInterval(() => fetchBusData(), 15000);
+        const interval = setInterval(() => fetchBusData(), 3000);
         return () => clearInterval(interval);
     }, []);
 
@@ -226,7 +226,7 @@ export default function UserDashboardMap() {
 
                     {liveBuses.map((bus, index) => (
                         <BusMarker
-                            key={index}
+                            key={bus.bus_ID}
                             latitude={parseFloat(bus.bus_latitude)}
                             longitude={parseFloat(bus.bus_longitude)}
                             busName={bus.bus_name}

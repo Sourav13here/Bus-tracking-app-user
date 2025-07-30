@@ -67,7 +67,7 @@ const OTPVerification = () => {
         setTimer(30);
 
         try {
-            const response = await fetch("http://192.168.38.91:9000/api/request-otp", {
+            const response = await fetch("http://192.168.39.204:9000/api/request-otp", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -100,7 +100,7 @@ const OTPVerification = () => {
             console.log('Verifying OTP:', otpValue);
 
             try {
-                const response = await fetch("http://192.168.38.91:9000/api/verify-otp", {
+                const response = await fetch("http://192.168.39.204:9000/api/verify-otp", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

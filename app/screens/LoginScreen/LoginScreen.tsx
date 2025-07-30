@@ -23,7 +23,7 @@ const LoginScreen = () => {
         }
         try {
             // Call your backend API
-            const response = await fetch("http://192.168.38.91:9000/api/request-otp", {
+            const response = await fetch("http://192.168.39.204:9000/api/request-otp", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

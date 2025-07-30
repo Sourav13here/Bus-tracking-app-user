@@ -53,7 +53,7 @@ async function getBusRoute(busName) {
     const sql = `
         SELECT route_id, stoppage_name,
                stoppage_latitude, stoppage_longitude,
-               stoppage_number,  has_arived
+               stoppage_number,  has_arrived
         FROM   route
         WHERE  route_name = (
             SELECT route FROM bus
@@ -70,7 +70,7 @@ async function markStoppageAsArrived(busName) {
 
     const last             = route[route.length - 1];
     const { affectedRows } = await pool.query(
-        `UPDATE route SET has_arived = 1 WHERE route_id = ?`,
+        `UPDATE route SET has_arrived = 1 WHERE route_id = ?`,
         [last.route_id]
     );
     log(`Completed entire route for ${busName} (last stop ${last.route_id})`);
@@ -95,7 +95,7 @@ async function saveBusLocation(busName, lat, lng) {
 
 /* Resets either a single bus's route or all routes */
 async function resetRoute(busName = null) {
-    let   sql    = "UPDATE route SET has_arived = 0";
+    let   sql    = "UPDATE route SET has_arrived = 0";
     const params = [];
     if (busName) {
         sql += ` WHERE route_name = (
@@ -123,7 +123,7 @@ async function markNearestStoppage(busName, lat, lng) {
         WHERE  route_name = (
             SELECT route FROM bus WHERE bus_name = ? LIMIT 1
             )
-          AND has_arived = 0
+          AND has_arrived = 0
         ORDER BY stoppage_number ASC
     `;
 
@@ -160,7 +160,7 @@ async function markNearestStoppage(busName, lat, lng) {
     }
 
     const { affectedRows } = await pool.query(
-        `UPDATE route SET has_arived = 1 WHERE route_id = ?`,
+        `UPDATE route SET has_arrived = 1 WHERE route_id = ?`,
         [closestStop.route_id]
     );
 

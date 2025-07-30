@@ -125,7 +125,7 @@ const UserAccountScreen: React.FC = () => {
                 })),
             };
 
-            const response = await fetch('http://192.168.38.91:9000/api/complete-profile', {
+            const response = await fetch('http://192.168.39.204:9000/api/complete-profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -166,7 +166,8 @@ const UserAccountScreen: React.FC = () => {
                 style: 'destructive',
                 onPress: async () => {
                     try {
-                        await AsyncStorage.multiRemove(['phone', 'isLoggedIn']);                        router.replace('/screens/LoginScreen/LoginScreen');
+                        await AsyncStorage.multiRemove(['phone', 'isLoggedIn']);                        
+                        router.replace('/screens/LoginScreen/LoginScreen');
                     } catch (error) {
                         console.error('Logout error:', error);
                         Alert.alert('Error', 'Failed to log out. Please try again.');

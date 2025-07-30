@@ -15,15 +15,15 @@ interface BusMarkerProps {
 }
 
 const BusMarker: React.FC<BusMarkerProps> = ({
-                                                 latitude,
-                                                 longitude,
-                                                 busName,
-                                                 driverName,
-                                                 driverPhone,
-                                                 markerStyle,
-                                                 emoji = "🚍",
-                                                 onCalloutPress, // <-- and this line
-                                             }) => (
+            latitude,
+            longitude,
+            busName,
+            driverName,
+            driverPhone,
+            markerStyle,
+            emoji = "🚍",
+            onCalloutPress, // <-- and this line
+        }) => (
     <Marker
         coordinate={{ latitude, longitude }}
         title={`${busName}`}
